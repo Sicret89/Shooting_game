@@ -2,6 +2,8 @@ import os
 
 import pygame
 
+pygame.font.init()
+pygame.mixer.init()
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 WIDTH, HEIGHT = 900, 500
@@ -10,6 +12,13 @@ pygame.display.set_caption("Shooting game!")
 BACKGROUND = pygame.transform.scale(
     pygame.image.load(os.path.join("Resources", "background_1.png")), (WIDTH, HEIGHT)
 )
+
+BOW_EFFECT_LEFT = pygame.mixer.Sound("Resources/bow_shoot_left.mp3")
+BOW_EFFECT_RIGHT = pygame.mixer.Sound("Resources/bow_shoot_right.mp3")
+ARROW_IMPACT = pygame.mixer.Sound("Resources/arrow_impact.mp3")
+
+HEALTH_FONT = pygame.font.SysFont("comicsans", 30)
+WINNER_FONT = pygame.font.SysFont("comicsans", 100)
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -37,9 +46,13 @@ RIGHT_ARCHER = pygame.transform.rotate(
 )
 
 
-def draw_window(left, right, red_bullets, blue_bullets):
+def draw_window(left, right, red_bullets, blue_bullets, left_health, right_health):
     WIN.blit(BACKGROUND, (0, 0))
     pygame.draw.rect(WIN, BLACK, BORDER)
+    left_health_text = HEALTH_FONT.render("Health: " + str(left_health), 1, WHITE)
+    right_health_text = HEALTH_FONT.render("Health: " + str(right_health), 1, WHITE)
+    WIN.blit(left_health_text, (WIDTH - left_health_text.get_width() - 10, 10))
+    WIN.blit(right_health_text, (10, 10))
     WIN.blit(LEFT_ARCHER, (left.x, left.y))
     WIN.blit(RIGHT_ARCHER, (right.x, right.y))
 
@@ -92,12 +105,24 @@ def handle_bullets(red_bullets, blue_bullets, left, right):
             blue_bullets.remove(bullet)
 
 
+def draw_winner(winner_text):
+    draw_text = WINNER_FONT.render(winner_text, 1, WHITE)
+    WIN.blit(
+        draw_text, (WIDTH / 2 - draw_text.get_width() / 2, HEIGHT / 2 - draw_text.get_height() / 2)
+    )
+    pygame.display.update()
+    pygame.time.delay(5000)
+
+
 def main():
-    left = pygame.Rect(100, 300, ARCHER_WIDTH, ARCHER_HEIGHT)
-    right = pygame.Rect(500, 300, ARCHER_WIDTH, ARCHER_HEIGHT)
+    left = pygame.Rect(0, HEIGHT / 2, ARCHER_WIDTH, ARCHER_HEIGHT)
+    right = pygame.Rect(855, HEIGHT / 2, ARCHER_WIDTH, ARCHER_HEIGHT)
 
     red_bullets = []
     blue_bullets = []
+
+    left_health = 10
+    right_health = 10
 
     clock = pygame.time.Clock()
     run = True
@@ -112,16 +137,37 @@ def main():
                 if event.key == pygame.K_LCTRL and len(red_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(left.x + left.width, left.y + left.height // 2 - 2, 10, 5)
                     red_bullets.append(bullet)
+                    BOW_EFFECT_LEFT.play()
                 if event.key == pygame.K_RCTRL and len(blue_bullets) < MAX_BULLETS:
                     bullet = pygame.Rect(right.x, right.y + right.height // 2 - 2, 10, 5)
                     blue_bullets.append(bullet)
+                    BOW_EFFECT_RIGHT.play()
+
+            if event.type == LEFT_HIT:
+                right_health -= 1
+                ARROW_IMPACT.play()
+
+            if event.type == RIGHT_HIT:
+                left_health -= 1
+                ARROW_IMPACT.play()
+
+        winner_txt = ""
+        if left_health <= 0:
+            winner_txt = "Left Wins!"
+
+        if right_health <= 0:
+            winner_txt = "Right Wins!"
+
+        if winner_txt != "":
+            draw_winner(winner_txt)
+            break
 
         keys_pressed = pygame.key.get_pressed()
         left_handle_movement(keys_pressed, left)
         right_handle_movement(keys_pressed, right)
 
         handle_bullets(red_bullets, blue_bullets, left, right)
-        draw_window(left, right, red_bullets, blue_bullets)
+        draw_window(left, right, red_bullets, blue_bullets, left_health, right_health)
 
     main()
 
