@@ -44,6 +44,8 @@ RIGHT_ARCHER_IMAGE = pygame.image.load(
 RIGHT_ARCHER = pygame.transform.rotate(
     pygame.transform.scale(RIGHT_ARCHER_IMAGE, (ARCHER_WIDTH, ARCHER_HEIGHT)), 0
 )
+RIGHT_ARROW_IMAGE = pygame.image.load(os.path.join("Resources", "right_arrow.png")).convert_alpha()
+LEFT_ARROW_IMAGE = pygame.image.load(os.path.join("Resources", "left_arrow.png")).convert_alpha()
 
 
 def draw_window(left, right, red_bullets, blue_bullets, left_health, right_health):
@@ -57,10 +59,12 @@ def draw_window(left, right, red_bullets, blue_bullets, left_health, right_healt
     WIN.blit(RIGHT_ARCHER, (right.x, right.y))
 
     for bullet in red_bullets:
-        pygame.draw.rect(WIN, RED, bullet)
+        # pygame.draw.rect(WIN, RED, bullet)
+        WIN.blit(RIGHT_ARROW_IMAGE, bullet)
 
     for bullet in blue_bullets:
-        pygame.draw.rect(WIN, BLUE, bullet)
+        # pygame.draw.rect(WIN, BLUE, bullet)
+        WIN.blit(LEFT_ARROW_IMAGE, bullet)
 
     pygame.display.update()
 
@@ -111,12 +115,14 @@ def draw_winner(winner_text):
         draw_text, (WIDTH / 2 - draw_text.get_width() / 2, HEIGHT / 2 - draw_text.get_height() / 2)
     )
     pygame.display.update()
-    pygame.time.delay(5000)
+    pygame.time.delay(4000)
 
 
 def main():
-    left = pygame.Rect(0, HEIGHT / 2, ARCHER_WIDTH, ARCHER_HEIGHT)
-    right = pygame.Rect(855, HEIGHT / 2, ARCHER_WIDTH, ARCHER_HEIGHT)
+    left = pygame.Rect(0, HEIGHT / 2 - ARCHER_HEIGHT, ARCHER_WIDTH, ARCHER_HEIGHT / 2)
+    right = pygame.Rect(
+        WIDTH - ARCHER_WIDTH, HEIGHT / 2 - ARCHER_HEIGHT, ARCHER_WIDTH, ARCHER_HEIGHT / 2
+    )
 
     red_bullets = []
     blue_bullets = []
@@ -135,7 +141,7 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LCTRL and len(red_bullets) < MAX_BULLETS:
-                    bullet = pygame.Rect(left.x + left.width, left.y + left.height // 2 - 2, 10, 5)
+                    bullet = pygame.Rect(left.x, left.y + left.height // 2 - 2, 10, 5)
                     red_bullets.append(bullet)
                     BOW_EFFECT_LEFT.play()
                 if event.key == pygame.K_RCTRL and len(blue_bullets) < MAX_BULLETS:
