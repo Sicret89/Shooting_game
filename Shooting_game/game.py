@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pygame
 
@@ -138,6 +139,11 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+                    pygame.quit()
+                    sys.exit()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LCTRL and len(red_bullets) < MAX_BULLETS:
